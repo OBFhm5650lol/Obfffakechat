@@ -1,0 +1,258 @@
+ect(function()
+    ScreenGui:Destroy()
+endlocal Players = game:GetService("Players")
+local TextChatService = game:GetService("TextChatService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Create the compact GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CompactFakeChat"
+ScreenGui.Parent = game:GetService("CoreGui") or Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Main Frame (smaller size)
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 250, 0, 220) -- More compact size
+Frame.Position = UDim2.new(0.5, -125, 0.5, -110)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+Frame.BorderSizePixel = 0
+Frame.Parent = ScreenGui
+
+-- Shadow effect
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 0.8
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+shadow.Size = UDim2.new(1, 20, 1, 20)
+shadow.Position = UDim2.new(0, -10, 0, -10)
+shadow.BackgroundTransparency = 1
+shadow.ZIndex = -1
+shadow.Parent = Frame
+
+-- Rounded corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = Frame
+
+-- Compact Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 24) -- Smaller title bar
+TitleBar.Position = UDim2.new(0, 0, 0, 0)
+TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.ZIndex = 2
+TitleBar.Parent = Frame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.Parent = TitleBar
+
+-- Title Text
+local Title = Instance.new("TextLabel")
+Title.Text = "💬 Fake Chat"
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 8, 0, 0)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(220, 220, 220)
+Title.Font = Enum.Font.GothamSemibold
+Title.TextSize = 13 -- Slightly smaller
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 2
+Title.Parent = TitleBar
+
+-- Close Button
+local CloseButton = Instance.new("ImageButton")
+CloseButton.Size = UDim2.new(0, 18, 0, 18) -- Smaller button
+CloseButton.Position = UDim2.new(1, -26, 0, 3)
+CloseButton.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
+CloseButton.Image = "rbxassetid://3926305904"
+CloseButton.ImageColor3 = Color3.fromRGB(220, 220, 220)
+CloseButton.ImageRectOffset = Vector2.new(284, 4)
+CloseButton.ImageRectSize = Vector2.new(24, 24)
+CloseButton.ZIndex = 2
+CloseButton.Parent = TitleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = CloseButton
+
+-- Main content frame
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(1, 0, 1, -24)
+ContentFrame.Position = UDim2.new(0, 0, 0, 24)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.ZIndex = 1
+ContentFrame.Parent = Frame
+
+-- Compact input fields
+local function createCompactInput(yPos, placeholder)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0.8, 0, 0, 28) -- Slightly taller for better touch
+    frame.Position = UDim2.new(0.1, 0, yPos, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    frame.ZIndex = 2
+    frame.Parent = ContentFrame
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = frame
+    
+    local textBox = Instance.new("TextBox")
+    textBox.Size = UDim2.new(1, -12, 1, -8)
+    textBox.Position = UDim2.new(0, 6, 0, 4)
+    textBox.BackgroundTransparency = 1
+    textBox.Text = ""
+    textBox.PlaceholderText = placeholder
+    textBox.TextColor3 = Color3.fromRGB(220, 220, 220)
+    textBox.Font = Enum.Font.Gotham
+    textBox.TextSize = 12
+    textBox.ZIndex = 3
+    textBox.Parent = frame
+    
+    return textBox
+end
+
+-- Create compact input fields with labels
+local function createLabeledInput(yPos, labelText, placeholder)
+    local label = Instance.new("TextLabel")
+    label.Text = labelText
+    label.Size = UDim2.new(0.8, 0, 0, 16)
+    label.Position = UDim2.new(0.1, 0, yPos, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(180, 180, 180)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 2
+    label.Parent = ContentFrame
+    
+    local input = createCompactInput(yPos + 0.08, placeholder)
+    return input
+end
+
+-- Create all inputs
+local YourChat = createLabeledInput(0.05, "Your Prefix:", "Prefix text")
+local Username = createLabeledInput(0.25, "Target Name:", "Username or {System}")
+local FakeChat = createLabeledInput(0.45, "Message:", "Text to send")
+
+-- Send Button (separate from inputs)
+local SendButton = Instance.new("TextButton")
+SendButton.Size = UDim2.new(0.6, 0, 0, 28)
+SendButton.Position = UDim2.new(0.2, 0, 0.7, 0)
+SendButton.Text = "SEND MESSAGE"
+SendButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+SendButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SendButton.Font = Enum.Font.GothamSemibold
+SendButton.TextSize = 12
+SendButton.ZIndex = 2
+SendButton.Parent = ContentFrame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 6)
+buttonCorner.Parent = SendButton
+
+-- Status Label (smaller)
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(0.8, 0, 0, 16)
+StatusLabel.Position = UDim2.new(0.1, 0, 0.85, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+StatusLabel.Text = "Ready to send messages"
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextSize = 10
+StatusLabel.ZIndex = 2
+StatusLabel.Parent = ContentFrame
+
+-- Button hover effects
+local function buttonHoverEffect(button)
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.1), {BackgroundColor3 = button == SendButton and Color3.fromRGB(0, 140, 255) or Color3.fromRGB(70, 70, 75)}):Play()
+    end)
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = button == SendButton and Color3.fromRGB(0, 120, 215) or Color3.fromRGB(50, 50, 55)}):Play()
+    end)
+    button.MouseButton1Down:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.1), {BackgroundColor3 = button == SendButton and Color3.fromRGB(0, 100, 180) or Color3.fromRGB(90, 90, 95)}):Play()
+    end)
+    button.MouseButton1Up:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = button == SendButton and Color3.fromRGB(0, 140, 255) or Color3.fromRGB(70, 70, 75)}):Play()
+    end)
+end
+
+buttonHoverEffect(SendButton)
+buttonHoverEffect(CloseButton)
+
+-- Drag functionality
+local dragging, dragInput, dragStart, startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Frame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TitleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+-- Chat functionality
+local function sendFakeMessage()
+    if YourChat.Text == "" or FakeChat.Text == "" then
+        StatusLabel.Text = "Please fill all fields!"
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 120, 120)
+        task.delay(2, function()
+            StatusLabel.Text = "Ready to send messages"
+            StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+        end)
+        return
+    end
+    
+    local username = Username.Text ~= "" and Username.Text or Players.LocalPlayer.Name
+    local message = YourChat.Text .. string.rep(" ", 50) .. username .. ": " .. FakeChat.Text
+    
+    -- Support for both new and old chat systems
+    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+        TextChatService.TextChannels.RBXGeneral:SendAsync(message)
+    else
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(message, "All")
+    end
+    
+    StatusLabel.Text = "Message sent!"
+    StatusLabel.TextColor3 = Color3.fromRGB(120, 255, 120)
+    task.delay(2, function()
+        StatusLabel.Text = "Ready to send messages"
+        StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+    end)
+end
+
+-- Connect events
+SendButton.MouseButton1Click:Connect(sendFakeMessage)
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
